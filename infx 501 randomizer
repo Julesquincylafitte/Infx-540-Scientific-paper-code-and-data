@@ -1,0 +1,71 @@
+import random
+import pandas as pd
+from faker import Faker
+from datetime import datetime, timedelta
+
+# Initialize Faker for generating fake business names
+fake = Faker()
+
+# Parameters
+num_entries = 1000
+start_date = datetime(2024, 1, 1)
+end_date = datetime(2024, 12, 31)
+vendors = ["Tire Supply Co.", "Bolt & Fastener Supply", "MetalWorks Inc.", "Acme Logistics", 
+           "Safety Equipment Corp.", "Global Tires Ltd.", "Power Tools Inc.", "PaperCo", 
+           "Electric Motors & Co.", "PetroChemicals Ltd.", "Industrial Welding Inc.", "Clean Air Solutions", 
+           "Maintenance Supplies Co.", "Packaging Materials Ltd.", "Electrical Components Inc.", 
+           "CarParts Hub", "Hydraulic Systems Ltd.", "IT Solutions Group", "Steel & Alloy Industries", 
+           "MoldTech Inc.", "Industrial Pumps Corp.", "Pressure Testing Solutions", "Forklift Rentals Inc.", 
+           "Office Solutions Inc.", "Air Compressor Supply", "Bulk Rubber Supply Co.", "Power Systems Ltd.", 
+           "Vibration Control Experts", "TireTech Co.", "Supply Line Parts", "Factory Tools Supply", 
+           "Machine Parts Warehouse", "Steel Fabrication Co.", "Safety First Equipment", "Industrial Cooling Systems", 
+           "Chemical Supplies Inc.", "AirTech Inc.", "TurboVent Engineering", "PowerDrive Motors", "TirePress Co.",
+           "Bulk Material Handling Inc.", "LabTech Scientific", "Conveyor Systems Ltd.", "SafetyNet Systems", 
+           "Advanced Engineering Co.", "Hydraulics & More", "TireTesters Inc.", "EcoPower Solutions"]
+
+# Descriptions based on typical tire manufacturing company expenses
+descriptions = [
+    "Purchase of raw rubber for manufacturing tires", "Bulk order of tire bolts and screws", 
+    "Steel rim production materials", "Freight for transporting raw materials", "Purchase of safety equipment for the factory", 
+    "Tire mold maintenance and service", "Bulk purchase of power tools for factory maintenance", 
+    "Office supplies (paper, ink, etc.)", "Replacement electric motors for tire production", 
+    "Oil and lubricants for factory machinery", "Welding services for factory equipment", 
+    "Industrial air filtration system for factory", "General maintenance supplies", "Packaging materials for finished tire products", 
+    "Electrical parts for tire production lines", "Bulk purchase of car parts for product testing", 
+    "Hydraulic equipment for tire presses", "Computer systems and software for factory management", 
+    "Steel for tire manufacturing machinery", "Replacement tire molds", "Replacement pumps for production line", 
+    "Pressure testing for tire quality control", "Rental of forklifts for warehouse operations", 
+    "Office equipment lease payments", "Air compressor parts for factory", "Bulk purchase of rubber for tire production", 
+    "Generator maintenance", "Vibration control systems for factory machinery", "Tire inspection equipment", 
+    "Conveyor belts for production lines", "Purchase of hand tools for factory maintenance", 
+    "Replacement parts for machinery", "Steel components for tire production machinery", 
+    "Safety gear for factory workers", "Purchase of cooling units for production line", 
+    "Chemicals for tire rubber processing", "Industrial air compressor for production", "Ventilation system for tire storage warehouse", 
+    "Purchase of electric motors for tire machines", "Purchase of tire press machinery", "Bulk materials handling systems", 
+    "Tire testing lab equipment", "Conveyor belts for production lines", "Safety equipment for manufacturing floor", 
+    "Precision tools for tire molding", "Hydraulic equipment for production lines", "Testing equipment for tire durability testing", 
+    "Green energy solutions for manufacturing plant"
+]
+
+# Randomly generate entries
+def generate_random_data():
+    data = []
+    for _ in range(num_entries):
+        date = start_date + timedelta(days=random.randint(0, (end_date - start_date).days))
+        vendor = random.choice(vendors)
+        description = random.choice(descriptions)
+        amount = round(random.uniform(1, 30000), 2)  # Amount between 1 and 30,000
+        data.append([date.strftime('%m/%d/%Y'), vendor, description, amount])
+    return data
+
+# Generate random data
+data = generate_random_data()
+
+# Create a DataFrame
+df = pd.DataFrame(data, columns=["Date", "Vendor", "Description", "Amount"])
+
+# Save to Excel
+output_filename = "ExpenseReport.xlsx"
+df.to_excel(output_filename, index=False)
+
+print(f"Expense report generated and saved as {output_filename}")
