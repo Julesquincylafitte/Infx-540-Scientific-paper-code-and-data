@@ -1,0 +1,95 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from pyod.models.iforest import IForest  # Isolation Forest
+from pyod.models.knn import KNN  # k-Nearest Neighbors
+from sklearn.preprocessing import LabelEncoder
+
+def detect_anomalies_with_pyod(dataframe, amount_column, vendor_column):
+    """
+    Detect anomalies in the 'Amount' and 'Vendor' columns using PyOD.
+
+    Parameters:
+        dataframe (pd.DataFrame): The input DataFrame.
+        amount_column (str): The name of the amount column.
+        vendor_column (str): The name of the vendor column.
+
+    Returns:
+        pd.DataFrame: DataFrame containing amount anomalies.
+        pd.DataFrame: DataFrame containing vendor name anomalies.
+    """
+    # Convert the 'Amount' column to a 2D array for PyOD (if it's not already)
+    amount_data = dataframe[[amount_column]].values
+
+    # Initialize and fit PyOD models
+    # Use Isolation Forest for amount anomalies
+    iso_forest = IForest(contamination=0.05)  # Adjust contamination as needed
+    iso_forest.fit(amount_data)
+    amount_anomalies = dataframe[iso_forest.predict(amount_data) == 1]
+
+    # Detect anomalies in vendor names using k-Nearest Neighbors
+    # Encode vendor names numerically using LabelEncoder
+    label_encoder = LabelEncoder()
+    dataframe['vendor_encoded'] = label_encoder.fit_transform(dataframe[vendor_column])
+    vendor_data = dataframe[['vendor_encoded']].values
+
+    knn_model = KNN(contamination=0.05)  # Adjust contamination as needed
+    knn_model.fit(vendor_data)
+    vendor_name_anomalies = dataframe[knn_model.predict(vendor_data) == 1]
+
+    return amount_anomalies, vendor_name_anomalies
+
+def visualize_vendor_name_anomalies(dataframe, anomalies, vendor_column):
+    """
+    Visualize vendor name anomalies in a bar chart.
+
+    Parameters:
+        dataframe (pd.DataFrame): The input DataFrame.
+        anomalies (pd.DataFrame): A DataFrame containing vendor name anomalies.
+        vendor_column (str): The name of the vendor column.
+    """
+    plt.figure(figsize=(12, 6))
+    sns.countplot(
+        x=dataframe[vendor_column],
+        order=dataframe[vendor_column].value_counts().index,
+        color="blue",
+        label="Normal Vendors"
+    )
+    if not anomalies.empty:
+        sns.countplot(
+            x=anomalies[vendor_column],
+            order=dataframe[vendor_column].value_counts().index,
+            color="red",
+            label="Anomalous Vendors"
+        )
+    plt.title("Vendor Name Anomalies")
+    plt.xlabel("Vendor Name")
+    plt.ylabel("Count")
+    plt.xticks(rotation=45, ha="right")
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+# Load the Excel file
+file_path = "ExpenseReport.xlsx"
+df = pd.read_excel(file_path)
+
+# Detect anomalies using PyOD
+amount_anomalies, vendor_name_anomalies = detect_anomalies_with_pyod(
+    df, amount_column="Amount", vendor_column="Vendor"
+)
+
+# Visualize vendor name anomalies
+if not vendor_name_anomalies.empty:
+    visualize_vendor_name_anomalies(df, vendor_name_anomalies, vendor_column="Vendor")
+else:
+    print("No anomalies detected in vendor names.")
+
+# Save anomalies to Excel files
+if not amount_anomalies.empty:
+    amount_anomalies.to_excel("AmountAnomalies.xlsx", index=False)
+    print("Amount anomalies saved to 'AmountAnomalies.xlsx'.")
+
+if not vendor_name_anomalies.empty:
+    vendor_name_anomalies.to_excel("VendorNameAnomalies.xlsx", index=False)
+    print("Vendor name anomalies saved to 'VendorNameAnomalies.xlsx'.")
